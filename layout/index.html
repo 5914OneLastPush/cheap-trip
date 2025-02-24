@@ -1,35 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Maps Grid Layout</title>
-    <link rel="stylesheet" type="text/css" href="./styles.css" />
-    <script type="module" src="./index.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+    <title>CheapTrip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        input, button {
+            margin: 10px;
+            padding: 8px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <input type="text" id="search" placeholder="Searching for...">
-            <button id="search-btn">Search</button>
-        </header>
-        <aside class="sidebar">
-            <h2>Location information</h2>
-            <ul id="location-list"></ul>
-        </aside>
-        <h3>My Google Maps Demo</h3>
-    <!--The div element for the map -->
+    <h2>Route search</h2>
+    <input type="text" id="origin" placeholder="From">
+    <input type="text" id="destination" placeholder="To">
+    <button onclick="calculateRoute()">Search</button>
+    <div id="output"></div>
     <div id="map"></div>
+    
+    <script>
+        function initMap() {
+            window.map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 40.0076, lng: -83.0306 }, 
+                zoom: 12
+            });
+        }
 
-    <!-- prettier-ignore -->
-    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-        ({key: "AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg", v: "weekly"});</script>
-        <footer>
-            <button>Path planner</button>
-            <button>Location Tag</button>
-        </footer>
-    </div>
+        function calculateRoute() {
+            const origin = document.getElementById("origin").value;
+            const destination = document.getElementById("destination").value;
+            
+            if (!origin || !destination) {
+                alert("Please input vaild location!");
+                return;
+            }
+            
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer();
+            directionsRenderer.setMap(map);
+            
+            directionsService.route(
+                {
+                    origin: origin,
+                    destination: destination,
+                    travelMode: google.maps.TravelMode.DRIVING 
+                },
+                function (response, status) {
+                    if (status === "OK") {
+                        directionsRenderer.setDirections(response);
+                        const route = response.routes[0].legs[0];
+                        document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}`;
+                    } else {
+                        alert("Can't get the route: " + status);
+                    }
+                }
+            );
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap"></script>
 </body>
 </html>
