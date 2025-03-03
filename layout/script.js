@@ -81,3 +81,60 @@ function calculateRoute() {
       }
   );
 }
+
+const chatBox = document.getElementById('chat-box');
+const userInput = document.getElementById('user-input');
+const sendButton = document.getElementById('send-button');
+
+
+function addMessageToChatBox(role, content) {
+    const messageElement = document.createElement('div');
+    messageElement.innerHTML = `<strong>${role}:</strong> ${content}`;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+
+async function callDeepseekAPI(userMessage) {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer sk-9262f4e5a89d4315a2bebf52f2d9ca5d' 
+        },
+        body: JSON.stringify({
+            messages: [
+                { role: "system", content: "You are a helpful assistant.Now you are an assistant focused on planning driving destinations within the United States for users, specializing in mapping available routes." },
+                { role: "user", content: userMessage }
+            ],
+            model: "deepseek-chat"
+        })
+    });
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+
+sendButton.addEventListener('click', async () => {
+    const userMessage = userInput.value.trim();
+    if (userMessage) {
+        addMessageToChatBox('You', userMessage);
+        userInput.value = ''; 
+
+        try {
+            const assistantResponse = await callDeepseekAPI(userMessage); 
+            addMessageToChatBox('Assistant', assistantResponse); 
+        } catch (error) {
+            console.error('Error calling Deepseek API:', error);
+            addMessageToChatBox('Assistant', 'Sorry, something went wrong. Please try again.');
+        }
+    }
+});
+
+
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendButton.click();
+    }
+});
