@@ -35,52 +35,70 @@ function calculateFuelCost(distance, pricePerUnit) {
   return (gallonsNeeded * pricePerUnit).toFixed(2);
 }
 
+function downloadJSON(data, filename = 'route_info.json') {
+    const jsonStr = JSON.stringify(data, null, 2); 
+    const blob = new Blob([jsonStr], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a); 
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+
 function calculateRoute() {
-  const origin = document.getElementById("origin").value;
-  const destination = document.getElementById("destination").value;
+    const origin = document.getElementById("origin").value;
+    const destination = document.getElementById("destination").value;
+    
+    if (!origin || !destination) {
+        alert("Please input valid location!");
+        return;
+    }
+    
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(map);
+    
+    directionsService.route(
+        {
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING 
+        },
+        function (response, status) {
+            if (status === "OK") {
+                directionsRenderer.setDirections(response);
+                const route = response.routes[0].legs[0];
+                const distanceKm = parseFloat(route.distance.text.replace(/[^0-9.]/g, ""));
+                
+                getGasPrices(function(prices) {
+                    if (prices) {
+                        let tableBody = document.querySelector("#fuelTable tbody");
+                        tableBody.innerHTML = "";
+                        for (const [fuelType, price] of Object.entries(prices)) {
+                            const cost = calculateFuelCost(distanceKm, price);
+                            let row = `<tr><td>${fuelType.toUpperCase()}</td><td>$${price.toFixed(2)}</td><td>$${cost}</td></tr>`;
+                            tableBody.innerHTML += row;
+                        }
+                        document.getElementById("fuelTable").style.display = "table";
+                        document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}`;
+                    } else {
+                        document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}, Unable to retrieve gas prices`;
+                    }
+                });
   
-  if (!origin || !destination) {
-      alert("Please input valid location!");
-      return;
+
+                downloadJSON(response, 'route_info.json');
+            } else {
+                alert("Can't get the route: " + status);
+            }
+        }
+    );
   }
   
-  const directionsService = new google.maps.DirectionsService();
-  const directionsRenderer = new google.maps.DirectionsRenderer();
-  directionsRenderer.setMap(map);
-  
-  directionsService.route(
-      {
-          origin: origin,
-          destination: destination,
-          travelMode: google.maps.TravelMode.DRIVING 
-      },
-      function (response, status) {
-          if (status === "OK") {
-              directionsRenderer.setDirections(response);
-              const route = response.routes[0].legs[0];
-              const distanceKm = parseFloat(route.distance.text.replace(/[^0-9.]/g, ""));
-              
-              getGasPrices(function(prices) {
-                  if (prices) {
-                      let tableBody = document.querySelector("#fuelTable tbody");
-                      tableBody.innerHTML = "";
-                      for (const [fuelType, price] of Object.entries(prices)) {
-                          const cost = calculateFuelCost(distanceKm, price);
-                          let row = `<tr><td>${fuelType.toUpperCase()}</td><td>$${price.toFixed(2)}</td><td>$${cost}</td></tr>`;
-                          tableBody.innerHTML += row;
-                      }
-                      document.getElementById("fuelTable").style.display = "table";
-                      document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}`;
-                  } else {
-                      document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}, Unable to retrieve gas prices`;
-                  }
-              });
-          } else {
-              alert("Can't get the route: " + status);
-          }
-      }
-  );
-}
 
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
