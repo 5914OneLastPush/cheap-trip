@@ -5,6 +5,23 @@ function initMap() {
   });
 }
 
+function toggleChat() {
+    const chatBox = document.getElementById('chat-box-container');
+    if (chatBox.style.display === "none" || chatBox.style.display === "") {
+        chatBox.style.display = "block";
+    } else {
+        chatBox.style.display = "none";
+    }
+}
+
+function swapLocations() {
+    let origin = document.getElementById("origin");
+    let destination = document.getElementById("destination");
+    let temp = origin.value;
+    origin.value = destination.value;
+    destination.value = temp;
+}
+
 function getGasPrices(callback) {
   fetch("https://www.fueleconomy.gov/ws/rest/fuelprices")
       .then(response => response.text())

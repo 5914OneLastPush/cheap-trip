@@ -7,29 +7,59 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h2>Route search</h2>
-    <input type="text" id="origin" placeholder="From">
-    <input type="text" id="destination" placeholder="To">
-    <button onclick="calculateRoute()">Search</button>
-    <h2>Deepseek Chat</h2>
-    <div id="chat-box"></div>
-    <input type="text" id="user-input" placeholder="Type your message here...">
-    <button id="send-button">Send</button>
-    <script type="module" src="script.js"></script>
-    <div id="output"></div>
-    <table id="fuelTable" style="display: none;">
-        <thead>
-            <tr>
-                <th>Fuel Type</th>
-                <th>Price per Unit</th>
-                <th>Estimated Cost</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+
+    <div class="container">
+        <h2>Search Route</h2>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="input-group">
+                <span class="icon">📍</span>
+                <input type="text" id="origin" placeholder="Leaving from">
+            </div>
+            <div class="swap-icon" onclick="swapLocations()">⇆</div>
+            <div class="input-group">
+                <span class="icon">📍</span>
+                <input type="text" id="destination" placeholder="Going to">
+            </div>
+            <button class="search-button" onclick="calculateRoute()">Search</button>
+        </div>
+
+        <div id="output"></div>
+        <table id="fuelTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Fuel Type</th>
+                    <th>Price per Unit</th>
+                    <th>Estimated Cost</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
     <div id="map"></div>
-    
+
+    <!-- Chatbot Button & Chat Window -->
+    <div id="chat-widget">
+        <button id="chat-toggle" onclick="toggleChat()">💬 Chat now</button>
+        <div id="chat-box-container">
+            <div class="chat-header">
+                Chat with our AI!
+                <button class="close-chat" onclick="toggleChat()">×</button>
+            </div>
+            <div id="chat-box"></div>
+            <div class="chat-input-container">
+                <div class="input-group">
+                    <input type="text" id="user-input" placeholder="Type your message...">
+                </div>
+                <button class="search-button" id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap"></script>
+
 </body>
 </html>
