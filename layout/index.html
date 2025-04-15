@@ -7,12 +7,11 @@
   <title>CheapTrip</title>
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Minimal extra styling for the login modal (does not affect your existing layout) -->
   <style>
     /* --- Modal Overlay --- */
     #loginModal {
       position: fixed;
-      z-index: 9999; /* Higher than anything else on the page */
+      z-index: 9999; 
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.5);
@@ -33,8 +32,12 @@
   </style>
 </head>
 <body>
+  <div class="top-right-buttons">
+    <a href="saved_chat.html" class="top-button">Saved Chat</a>
+    <button class="top-button logout-btn" onclick="logout()">Log Out</button>
+  </div>
 
-  <!-- 1) LOGIN MODAL OVERLAY (ADDED) -->
+  <!-- LOGIN MODAL OVERLAY  -->
   <div id="loginModal">
     <div class="modal-content">
       <h2>Welcome to CheapTrip</h2>
@@ -93,9 +96,9 @@
       </div>
     </div>
   </div>
-  <!-- 1) END LOGIN MODAL OVERLAY -->
+  <!-- END LOGIN MODAL OVERLAY -->
 
-  <!-- 2) YOUR FINAL USER PAGE (UNCHANGED) -->
+  <!-- USER PAGE -->
   <div class="container">
     <h2>Search Route</h2>
 
@@ -150,7 +153,7 @@
     </div>
   </div>
 
-  <!-- 3) SCRIPTS -->
+  <!-- SCRIPTS -->
   <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- Your existing script with map init and route logic -->
@@ -163,58 +166,70 @@
   </script>
 
   <script>
-    /****************************************************
-     * AUTHENTICATION LOGIC (inline for demonstration)
-     ****************************************************/
-    function toggleAuth() {
-      document.getElementById('emailSignIn').classList.toggle('hidden');
-      document.getElementById('emailSignUp').classList.toggle('hidden');
-    }
-
-    // (Demo) Email Sign Up
-    function emailSignUp() {
-      const email = document.getElementById("signupEmail").value;
-      const password = document.getElementById("signupPassword").value;
-      if (!email || !password) {
-        alert("Please enter an email and password.");
-        return;
+    window.addEventListener("DOMContentLoaded", () => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user) {
+        document.getElementById("loginModal").style.display = "none";
       }
-      // Save user in localStorage (demo only)
-      const user = { email, password };
-      localStorage.setItem("user", JSON.stringify(user));
-      alert("Account created! Now sign in.");
-      toggleAuth(); // Switch back to sign-in form
-    }
+      /****************************************************
+       * AUTHENTICATION LOGIC (inline for demonstration)
+       ****************************************************/
+      function toggleAuth() {
+        document.getElementById('emailSignIn').classList.toggle('hidden');
+        document.getElementById('emailSignUp').classList.toggle('hidden');
+      }
 
-    // (Demo) Email Login
-    function emailLogin() {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (storedUser && storedUser.email === email && storedUser.password === password) {
-        alert("Logged in successfully!");
+      function emailSignUp() {
+        const email = document.getElementById("signupEmail").value;
+        const password = document.getElementById("signupPassword").value;
+        if (!email || !password) {
+          alert("Please enter an email and password.");
+          return;
+        }
+        const user = { email, password };
+        localStorage.setItem("user", JSON.stringify(user));
+        alert("Account created! Now sign in.");
+        toggleAuth();
+      }
+
+      function emailLogin() {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (storedUser && storedUser.email === email && storedUser.password === password) {
+          alert("Logged in successfully!");
+          closeModal();
+        } else {
+          alert("Invalid credentials.");
+        }
+      }
+
+      function continueAsGuest() {
         closeModal();
-      } else {
-        alert("Invalid credentials.");
       }
-    }
 
-    // Google Sign-In callback
-    function handleGoogleSignIn(response) {
-      console.log("Google JWT Token:", response.credential);
-      // In production, verify JWT server-side.
-      closeModal();
-    }
+      function closeModal() {
+        document.getElementById('loginModal').style.display = 'none';
+      }
 
-    // Guest Access
-    function continueAsGuest() {
-      closeModal();
-    }
+      function logout() {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (storedUser) {
+          localStorage.removeItem("user");
+          alert("You have been logged out.");
+          location.reload();
+        } else {
+          alert("You are currently signed in as a guest. No account to log out.");
+        }
+      }
 
-    // Close Modal
-    function closeModal() {
-      document.getElementById('loginModal').style.display = 'none';
-    }
+      window.toggleAuth = toggleAuth;
+      window.emailSignUp = emailSignUp;
+      window.emailLogin = emailLogin;
+      window.continueAsGuest = continueAsGuest;
+      window.closeModal = closeModal;
+      window.logout = logout;
+    });
   </script>
 </body>
 </html>
