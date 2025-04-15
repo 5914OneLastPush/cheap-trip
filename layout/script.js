@@ -45,12 +45,7 @@ function getGasPrices(callback) {
       });
 }
 
-function calculateFuelCost(distance, pricePerUnit) {
-  const avgMpg = 25; 
-  const distanceMiles = distance / 1.609; 
-  const gallonsNeeded = distanceMiles / avgMpg;
-  return (gallonsNeeded * pricePerUnit).toFixed(2);
-}
+
 
 function downloadJSON(data, filename = 'route_info.json') {
     const jsonStr = JSON.stringify(data, null, 2); 
@@ -69,7 +64,8 @@ function downloadJSON(data, filename = 'route_info.json') {
 function calculateRoute() {
     const origin = document.getElementById("origin").value;
     const destination = document.getElementById("destination").value;
-    
+    const carModel = document.getElementById("carModel").value;
+
     if (!origin || !destination) {
         alert("Please input valid location!");
         return;
@@ -85,30 +81,35 @@ function calculateRoute() {
             destination: destination,
             travelMode: google.maps.TravelMode.DRIVING 
         },
-        function (response, status) {
+        async function (response, status) {
             if (status === "OK") {
                 directionsRenderer.setDirections(response);
                 const route = response.routes[0].legs[0];
                 const distanceKm = parseFloat(route.distance.text.replace(/[^0-9.]/g, ""));
                 
-                getGasPrices(function(prices) {
-                    if (prices) {
-                        let tableBody = document.querySelector("#fuelTable tbody");
-                        tableBody.innerHTML = "";
-                        for (const [fuelType, price] of Object.entries(prices)) {
-                            const cost = calculateFuelCost(distanceKm, price);
-                            let row = `<tr><td>${fuelType.toUpperCase()}</td><td>$${price.toFixed(2)}</td><td>$${cost}</td></tr>`;
-                            tableBody.innerHTML += row;
-                        }
-                        document.getElementById("fuelTable").style.display = "table";
-                        document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}`;
-                    } else {
-                        document.getElementById("output").innerHTML = `Distance: ${route.distance.text}, Estimate time: ${route.duration.text}, Unable to retrieve gas prices`;
+                getGasPrices(async function(prices) {
+                    if (!prices) {
+                      console.error("Failed to get gas prices.");
+                      return;
                     }
-                });
-  
+                    // 此处能“看到” prices，才能安全传给 Deepseek
+                    try {
+                      const deepseekResult = await callDeepseekAPI(
+                        "Please give me the best cost-effective route analysis.",
+                        origin,
+                        destination,
+                        distanceKm,
+                        carModel,
+                        prices
+                      );
+                      console.log("Deepseek Analysis:", deepseekResult);
+                      addMessageToChatBox('Assistant', deepseekResult);
+                    } catch (error) {
+                      console.error('Error calling Deepseek API:', error);
+                    }
+                  });
 
-                downloadJSON(response, 'route_info.json');
+                //downloadJSON(response, 'route_info.json');
             } else {
                 alert("Can't get the route: " + status);
             }
@@ -130,7 +131,14 @@ function addMessageToChatBox(role, content) {
 }
 
 
-async function callDeepseekAPI(userMessage) {
+async function callDeepseekAPI(userMessage,origin, destination, distanceKm, carModel,prices) {
+    console.log('analysisPrompt:', userMessage);
+    console.log('origin:', origin);
+    console.log('destination:', destination);
+    console.log('distanceKm:', distanceKm);
+    console.log('carModel:', carModel);
+    console.log('prices:', prices);
+    const pricesString = JSON.stringify(prices, null, 2);
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -140,7 +148,9 @@ async function callDeepseekAPI(userMessage) {
         body: JSON.stringify({
             messages: [
                 { role: "system", content: "You are a helpful assistant.Now you are an assistant focused on planning driving destinations within the United States for users, specializing in mapping available routes." },
-                { role: "user", content: userMessage }
+                { role: "user", 
+                    content: `User wants to drive from ${origin} to ${destination}, distance is ${distanceKm} miles. The user's car model is: ${carModel}. Today's fuel prices: ${pricesString}.Additional info: ${userMessage}`
+                 }
             ],
             model: "deepseek-chat"
         })

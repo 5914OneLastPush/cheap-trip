@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CheapTrip</title>
@@ -100,6 +101,10 @@
 
     <!-- Search Bar -->
     <div class="search-container">
+      <div class="input-group">
+        <span class="icon">🚗</span>
+        <input type="text" id="carModel" placeholder="Vehicle Model (e.g. Toyota Camry)">
+      </div>
       <div class="input-group">
         <span class="icon">📍</span>
         <input type="text" id="origin" placeholder="Leaving from">
