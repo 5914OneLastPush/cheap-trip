@@ -224,6 +224,69 @@ th {
     margin-left: 5px;
 }
 
+/* Force uniform height on both buttons in your row */
+.auth-provider-buttons .g_id_signin,
+.auth-provider-buttons .outline-btn {
+  display: inline-flex;       /* or flex */
+  align-items: center;
+  justify-content: center;
+  height: 44px;               /* pick a height that works for you */
+  padding: 0 1rem;            /* horizontal padding; tune as needed */
+  box-sizing: border-box;
+}
+
+/* (Optional) If Google styles still override your height, use !important: */
+.auth-provider-buttons .g_id_signin,
+.auth-provider-buttons .outline-btn {
+  height: 44px !important;
+}
+  
+/* Style for the “Continue as Guest” outline button */
+.outline-btn {
+    border: 1px solid #d0d0d0;
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.outline-btn:hover {
+    background-color: #f0f0f0;
+}
+  
+  /* Forgot password link styling */
+  .forgot-container {
+    text-align: center;
+    margin-top: 1rem;
+}
+  .forgot-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+  .forgot-link:hover {
+    text-decoration: underline;
+}
+
+/* Container so inputs & button share the same width */
+.login-form-group {
+    width: 100%;
+    max-width: 300px; /* or whatever suits your layout */
+    margin: 0 auto;   /* centers it */
+    display: flex;
+    flex-direction: column; /* stack vertically */
+}
+  
+  /* Make inputs and button take the full container width */
+.login-form-group input[type="email"],
+.login-form-group input[type="password"],
+.login-form-group button {
+    width: 100%;
+    box-sizing: border-box; /* prevents width overshoot from padding */
+}
+
+  
 /* Logout Button Style */
 .logout-btn {
   font-weight: 600;
