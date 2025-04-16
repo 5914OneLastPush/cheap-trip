@@ -13,28 +13,97 @@
     #loginModal {
       position: fixed;
       z-index: 9999; /* Higher than anything else on the page */
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0; 
+      left: 0;
+      width: 100%; 
+      height: 100%;
       background: rgba(0, 0, 0, 0.5);
       display: flex;
       justify-content: center;
       align-items: center;
     }
+
+    /* --- Modal Container --- */
     #loginModal .modal-content {
       background: #fff;
-      padding: 20px;
-      border-radius: 8px;
       width: 90%;
       max-width: 400px;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
       text-align: center;
+      position: relative;
+      /* optional: fade/slide transition with CSS animations if you want */
     }
-    .hidden { display: none; }
-    .auth-option { margin: 15px 0; }
+
+    #loginModal h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      color: #333;
+    }
+    #loginModal h3 {
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      color: #555;
+    }
+
+    .auth-option {
+      margin: 15px 0;
+    }
+
+    /* --- Inputs --- */
+    #loginModal input[type="email"],
+    #loginModal input[type="password"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    /* --- Buttons --- */
+    #loginModal button {
+      background-color: #007bff; 
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin-top: 0.5rem;
+    }
+    #loginModal button:hover {
+      background-color: #0056b3;
+    }
+
+    /* --- Links --- */
+    #loginModal a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    #loginModal a:hover {
+      text-decoration: underline;
+    }
+
+    /* Divider styling */
+    #loginModal hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 0rem 0;
+    }
+
+    .hidden { 
+      display: none; 
+    }
   </style>
 </head>
 <body>
 
-  <!-- 1) LOGIN MODAL OVERLAY (ADDED) -->
+  <!-- LOGIN MODAL OVERLAY -->
   <div id="loginModal">
     <div class="modal-content">
       <h2>Welcome to CheapTrip</h2>
@@ -65,9 +134,8 @@
       <hr>
 
       <!-- Google Sign-In -->
-      <div class="auth-option">
-        <h3>Or Sign In with Google</h3>
-        <!-- Google Identity Services config -->
+      <div class="auth-provider-buttons">
+        <!-- Google Sign-In (same code, just moved inside this row) -->
         <div id="g_id_onload"
              data-client_id="YOUR_GOOGLE_CLIENT_ID"
              data-context="signin"
@@ -82,18 +150,20 @@
              data-size="large"
              data-logo_alignment="left">
         </div>
+      
+        <!-- Continue as Guest button -->
+        <button class="outline-btn" onclick="continueAsGuest()">
+          Continue as Guest
+        </button>
       </div>
-
-      <hr>
-
-      <!-- Continue as Guest -->
-      <div class="auth-option">
-        <h3>Or Continue as Guest</h3>
-        <button onclick="continueAsGuest()">Continue as Guest</button>
+      
+      <!-- Optional: Forgot password link underneath -->
+      <div class="forgot-container">
+        <a href="#" class="forgot-link">Forgot password?</a>
       </div>
     </div>
   </div>
-  <!-- 1) END LOGIN MODAL OVERLAY -->
+  <!-- END LOGIN MODAL OVERLAY -->
 
   <!-- 2) YOUR FINAL USER PAGE (UNCHANGED) -->
   <div class="container">
