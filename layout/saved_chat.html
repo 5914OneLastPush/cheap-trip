@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saved Chats</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.1.3/marked.min.js"></script>
+  <style>
+    .saved-chat-container {
+      max-width: 700px;
+      margin: 80px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+    }
+    .chat-entry {
+      margin-bottom: 15px;
+      padding: 12px;
+      border-left: 4px solid #007bff;
+      background: #f4f4f4;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .top-button {
+      margin: 0 10px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="saved-chat-container">
+    <h2>Saved Chat History</h2>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <a href="index.html" class="top-button"> Home</a>
+      <button class="top-button" onclick="clearSavedChats()">Clear All</button>
+    </div>
+    <div id="savedChats"></div>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+    // Redirect back to log in if user did not log in as either guest or email
+      window.location.href = "index.html";
+    }
+
+    function clearSavedChats() {
+      if (confirm("Are you sure you want to delete all saved chats?")) {
+        localStorage.removeItem("savedChats");
+        location.reload();
+      }
+    }
+
+    const saved = JSON.parse(localStorage.getItem('savedChats') || '[]');
+    const container = document.getElementById('savedChats');
+
+    if (saved.length === 0) {
+      container.innerHTML = "<p>No saved chats yet.</p>";
+    } else {
+      saved.forEach((chat, index) => {
+        const summary = document.createElement('div');
+        summary.className = 'chat-entry';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '🗑️';
+        deleteBtn.style.float = 'right';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.background = 'transparent';
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.title = 'Delete this chat';
+
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm("Delete this chat?")) {
+            saved.splice(index, 1);
+            localStorage.setItem('savedChats', JSON.stringify(saved));
+            location.reload();
+          }
+        });
+
+        if (typeof chat === 'string') {
+          summary.textContent = `Chat Entry #${index + 1}`;
+          summary.appendChild(deleteBtn);
+          summary.style.cursor = 'pointer';
+          summary.addEventListener('click', () => {
+            container.innerHTML = `
+              <h2>Chat Entry #${index + 1}</h2>
+              <div class="chat-entry">${marked.parse(chat)}</div>
+              <button onclick="location.reload()">Back to List</button>
+            `;
+          });
+        } else {
+          const { origin, destination, timestamp, content } = chat;
+          summary.innerHTML = `${origin} → ${destination}<br><small>${timestamp}</small>`;
+          summary.appendChild(deleteBtn);
+          summary.style.cursor = 'pointer';
+          summary.addEventListener('click', () => {
+            container.innerHTML = `
+              <h2>Chat for ${origin} → ${destination}</h2>
+              <div class="chat-entry">${marked.parse(content)}</div>
+              <button onclick="location.reload()">Back to List</button>
+            `;
+          });
+        }
+
+        container.appendChild(summary);
+      });
+    }
+  </script>
+</body>
+</html>

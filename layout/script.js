@@ -45,8 +45,6 @@ function getGasPrices(callback) {
       });
 }
 
-
-
 function downloadJSON(data, filename = 'route_info.json') {
     const jsonStr = JSON.stringify(data, null, 2); 
     const blob = new Blob([jsonStr], {type: 'application/json'});
@@ -59,7 +57,6 @@ function downloadJSON(data, filename = 'route_info.json') {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
-
 
 function calculateRoute() {
     const origin = document.getElementById("origin").value;
@@ -92,7 +89,6 @@ function calculateRoute() {
                       console.error("Failed to get gas prices.");
                       return;
                     }
-                    // 此处能“看到” prices，才能安全传给 Deepseek
                     try {
                       const deepseekResult = await callDeepseekAPI(
                         "Please give me the best cost-effective route analysis.",
@@ -104,24 +100,22 @@ function calculateRoute() {
                       );
                       console.log("Deepseek Analysis:", deepseekResult);
                       addMessageToChatBox('Assistant', deepseekResult);
+                      addChatToSaved(deepseekResult, origin, destination);
                     } catch (error) {
                       console.error('Error calling Deepseek API:', error);
                     }
                   });
 
-                //downloadJSON(response, 'route_info.json');
             } else {
                 alert("Can't get the route: " + status);
             }
         }
     );
-  }
+}
   
-
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
-
 
 function addMessageToChatBox(role, content) {
     const messageElement = document.createElement('div');
@@ -129,7 +123,6 @@ function addMessageToChatBox(role, content) {
     chatBox.appendChild(messageElement);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
-
 
 async function callDeepseekAPI(userMessage,origin, destination, distanceKm, carModel,prices) {
     console.log('analysisPrompt:', userMessage);
@@ -160,6 +153,17 @@ async function callDeepseekAPI(userMessage,origin, destination, distanceKm, carM
     return data.choices[0].message.content;
 }
 
+function addChatToSaved(content, origin, destination) {
+    const saved = JSON.parse(localStorage.getItem('savedChats') || '[]');
+    const entry = {
+      origin,
+      destination,
+      content,
+      timestamp: new Date().toLocaleString()
+    };
+    saved.push(entry);
+    localStorage.setItem('savedChats', JSON.stringify(saved));
+}
 
 sendButton.addEventListener('click', async () => {
     const userMessage = userInput.value.trim();
@@ -170,6 +174,7 @@ sendButton.addEventListener('click', async () => {
         try {
             const assistantResponse = await callDeepseekAPI(userMessage); 
             addMessageToChatBox('Assistant', assistantResponse); 
+            addChatToSaved(assistantResponse);
         } catch (error) {
             console.error('Error calling Deepseek API:', error);
             addMessageToChatBox('Assistant', 'Sorry, something went wrong. Please try again.');
@@ -177,9 +182,71 @@ sendButton.addEventListener('click', async () => {
     }
 });
 
-
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         sendButton.click();
     }
 });
+
+function clearSavedChats() {
+  if (confirm("Are you sure you want to delete all saved chats?")) {
+    localStorage.removeItem("savedChats");
+    location.reload();
+  }
+}
+
+const saved = JSON.parse(localStorage.getItem('savedChats') || '[]');
+const container = document.getElementById('savedChats');
+
+if (saved.length === 0) {
+  container.innerHTML = "<p>No saved chats yet.</p>";
+} else {
+  saved.forEach((chat, index) => {
+    const summary = document.createElement('div');
+    summary.className = 'chat-entry';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.style.float = 'right';
+    deleteBtn.style.border = 'none';
+    deleteBtn.style.background = 'transparent';
+    deleteBtn.style.cursor = 'pointer';
+    deleteBtn.title = 'Delete this chat';
+
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm("Delete this chat?")) {
+        saved.splice(index, 1);
+        localStorage.setItem('savedChats', JSON.stringify(saved));
+        location.reload();
+      }
+    });
+
+    if (typeof chat === 'string') {
+      summary.textContent = `Chat Entry #${index + 1}`;
+      summary.appendChild(deleteBtn);
+      summary.style.cursor = 'pointer';
+      summary.addEventListener('click', () => {
+        container.innerHTML = `
+          <h2>Chat Entry #${index + 1}</h2>
+          <div class="chat-entry">${chat}</div>
+          <button onclick="location.reload()">Back to List</button>
+        `;
+      });
+    } else {
+      const { origin, destination, timestamp, content } = chat;
+      summary.innerHTML = `${origin} → ${destination}<br><small>${timestamp}</small>`;
+      summary.appendChild(deleteBtn);
+      summary.style.cursor = 'pointer';
+      summary.addEventListener('click', () => {
+        container.innerHTML = `
+          <h2>Chat for ${origin} → ${destination}</h2>
+          <div class="chat-entry">${marked.parse(content)}</div>
+          <button onclick="location.reload()">Back to List</button>
+        `;
+      });
+    }
+
+    container.appendChild(summary);
+  });
+}
